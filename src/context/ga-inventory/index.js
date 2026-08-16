@@ -34,7 +34,9 @@ export function GAInventoryProvider({ children }) {
 
   const updateVendor = (id, payload) => {
     setVendors((current) =>
-      current.map((vendor) => (vendor.id === id ? { ...vendor, ...payload, id: vendor.id } : vendor))
+      current.map((vendor) =>
+        vendor.id === id ? { ...vendor, ...payload, id: vendor.id } : vendor
+      )
     );
   };
 
@@ -42,14 +44,24 @@ export function GAInventoryProvider({ children }) {
     const item = inventory.find((entry) => entry.id === itemId);
     if (!item) throw new Error("Item inventory tidak ditemukan.");
 
+    const supportedTypes = ["stock_in", "stock_out", "adjustment"];
+    if (!supportedTypes.includes(type)) throw new Error("Tipe stock movement tidak valid.");
+
     const parsedQuantity = Number(quantity);
     const isAdjustment = type === "adjustment";
+    const normalizedPurpose = purpose?.trim() || "";
 
     if (!Number.isFinite(parsedQuantity) || (!isAdjustment && parsedQuantity <= 0)) {
       throw new Error("Quantity harus lebih dari 0.");
     }
     if (isAdjustment && parsedQuantity < 0) {
-      throw new Error("Stock hasil adjustment tidak boleh negatif.");
+      throw new Error("Actual stock tidak boleh negatif.");
+    }
+    if (type === "stock_out" && !normalizedPurpose) {
+      throw new Error("Purpose / Used For wajib diisi untuk Stock Out.");
+    }
+    if (isAdjustment && !normalizedPurpose) {
+      throw new Error("Adjustment reason wajib diisi.");
     }
 
     let nextStock = item.stock;
@@ -59,7 +71,9 @@ export function GAInventoryProvider({ children }) {
 
     if (nextStock < 0) throw new Error(`Stock ${item.name} tidak mencukupi.`);
     if (isAdjustment && nextStock === item.stock) {
-      throw new Error("Tidak ada perubahan stock untuk disimpan.");
+      throw new Error(
+        "Actual stock sama dengan current stock. Tidak ada adjustment yang perlu disimpan."
+      );
     }
 
     const movement = {
@@ -70,9 +84,9 @@ export function GAInventoryProvider({ children }) {
       previousStock: item.stock,
       currentStock: nextStock,
       date: date || new Date().toISOString().slice(0, 10),
-      notes: notes || "",
+      notes: notes?.trim() || "",
       vendorId: vendorId || "",
-      purpose: purpose || "",
+      purpose: normalizedPurpose,
     };
 
     setInventory((current) =>

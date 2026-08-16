@@ -18,6 +18,21 @@ export const movementColors = {
   adjustment: "warning",
 };
 
+export const getMovementDelta = (movement) => {
+  if (movement.type === "stock_in") return Number(movement.quantity);
+  if (movement.type === "stock_out") return -Number(movement.quantity);
+  return Number(movement.currentStock) - Number(movement.previousStock);
+};
+
+export const formatMovementQuantity = (movement, unit = "") => {
+  const delta = getMovementDelta(movement);
+  const prefix = delta > 0 ? "+" : "";
+  return `${prefix}${delta} ${unit}`.trim();
+};
+
+export const getMovementDescription = (movement) =>
+  [movement.purpose, movement.notes].filter(Boolean).join(" — ") || "-";
+
 export const formatDate = (date) => {
   if (!date) return "-";
   return new Intl.DateTimeFormat("id-ID", {

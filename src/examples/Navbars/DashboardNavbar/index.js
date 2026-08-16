@@ -39,6 +39,13 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const [controller, dispatch] = useArgonController();
   const { miniSidenav, transparentNavbar, fixedNavbar } = controller;
   const route = useLocation().pathname.split("/").slice(1).filter(Boolean);
+  let breadcrumbRoute = route;
+
+  if (route[0] === "inventory" && route[1] === "new") {
+    breadcrumbRoute = ["inventory", "add-item"];
+  } else if (route[0] === "inventory" && route[route.length - 1] === "edit") {
+    breadcrumbRoute = ["inventory", "edit-item"];
+  }
 
   useEffect(() => {
     setNavbarType(fixedNavbar ? "sticky" : "static");
@@ -55,19 +62,49 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleMiniSidenav = () => setMiniSidenav(dispatch, !miniSidenav);
 
   return (
-    <AppBar position={absolute ? "absolute" : navbarType} color="inherit" sx={(currentTheme) => navbar(currentTheme, { transparentNavbar, absolute, light })}>
+    <AppBar
+      position={absolute ? "absolute" : navbarType}
+      color="inherit"
+      sx={(currentTheme) => navbar(currentTheme, { transparentNavbar, absolute, light })}
+    >
       <Toolbar sx={(currentTheme) => navbarContainer(currentTheme, { navbarType })}>
-        <ArgonBox color={light && transparentNavbar ? "white" : "dark"} minWidth={0} sx={(currentTheme) => navbarRow(currentTheme, { isMini })}>
-          <Breadcrumbs icon="home" title={route[route.length - 1] || "dashboard"} route={route} light={transparentNavbar ? light : false} />
-          <Icon fontSize="medium" sx={navbarDesktopMenu} onClick={handleMiniSidenav}>{miniSidenav ? "menu_open" : "menu"}</Icon>
+        <ArgonBox
+          color={light && transparentNavbar ? "white" : "dark"}
+          minWidth={0}
+          sx={(currentTheme) => navbarRow(currentTheme, { isMini })}
+        >
+          <Breadcrumbs
+            icon="home"
+            title={breadcrumbRoute[breadcrumbRoute.length - 1] || "dashboard"}
+            route={breadcrumbRoute}
+            light={transparentNavbar ? light : false}
+          />
+          <Icon fontSize="medium" sx={navbarDesktopMenu} onClick={handleMiniSidenav}>
+            {miniSidenav ? "menu_open" : "menu"}
+          </Icon>
         </ArgonBox>
         {isMini ? null : (
-          <ArgonBox sx={(currentTheme) => navbarRow(currentTheme, { isMini })} justifyContent="flex-end">
-            <ArgonBox display="flex" alignItems="center" color={light ? "white" : "dark"} flexShrink={0}>
-              <IconButton size="small" color="inherit" sx={navbarMobileMenu} onClick={handleMiniSidenav}>
+          <ArgonBox
+            sx={(currentTheme) => navbarRow(currentTheme, { isMini })}
+            justifyContent="flex-end"
+          >
+            <ArgonBox
+              display="flex"
+              alignItems="center"
+              color={light ? "white" : "dark"}
+              flexShrink={0}
+            >
+              <IconButton
+                size="small"
+                color="inherit"
+                sx={navbarMobileMenu}
+                onClick={handleMiniSidenav}
+              >
                 <Icon>{miniSidenav ? "menu_open" : "menu"}</Icon>
               </IconButton>
-              <Icon fontSize="small" sx={{ mr: { xs: 0, sm: 1 } }}>account_circle</Icon>
+              <Icon fontSize="small" sx={{ mr: { xs: 0, sm: 1 } }}>
+                account_circle
+              </Icon>
               <ArgonTypography
                 variant="button"
                 fontWeight="medium"
@@ -85,6 +122,10 @@ function DashboardNavbar({ absolute, light, isMini }) {
 }
 
 DashboardNavbar.defaultProps = { absolute: false, light: true, isMini: false };
-DashboardNavbar.propTypes = { absolute: PropTypes.bool, light: PropTypes.bool, isMini: PropTypes.bool };
+DashboardNavbar.propTypes = {
+  absolute: PropTypes.bool,
+  light: PropTypes.bool,
+  isMini: PropTypes.bool,
+};
 
 export default DashboardNavbar;
